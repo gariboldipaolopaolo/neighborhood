@@ -61,7 +61,7 @@ function Dashboard() {
       <MDBox py={3}>
         <MDBox mt={4.5}>
           <Grid container spacing={3}>
-            <Grid item xs={12} md={6} lg={6}>
+            <Grid item xs={12} md={12} lg={12}>
               <MDBox mb={3}>
                 <ReportsBarChart
                   color="info"
