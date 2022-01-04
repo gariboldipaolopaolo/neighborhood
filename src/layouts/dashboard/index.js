@@ -41,7 +41,7 @@ function Dashboard() {
       const lineNum = lines.length - 2;
       const rowNum = lines[2].split("\t").length;
       const matrix = new Array(lineNum);
-      // eslint-disable-next-line no-plusplus
+
       for (let i = 0; i < matrix.length; i++) {
         matrix[i] = new Array(rowNum);
       }
@@ -67,16 +67,70 @@ function Dashboard() {
         line++;
         t++;
       }
+      debugger;
+      const newMatrix = trasformaMatrix(matrix, lineNum, rowNum);
+      generateLpSolveText(newMatrix);
     };
     reader.readAsText(e.target.files[0]);
   };
 
-  const generateLpSolveText = () => {
-    
+  const generateLpSolveText = (matrix) => {
+    let text = "";
+    text += "\nmin: ";
+
+    for(let riga=0; riga < matrix.length; riga++){
+      for(let col=0; col < matrix[riga].length; col++){
+        text += `\n${matrix[riga][col]}*m${riga}j${col}`;
+        if(col!=matrix[riga].length-1){
+          text += "\n+";
+        }
+      }
+      text += "\n";
+    }
+
+    text += "\n\nConstraints: ";
+
+    let newriga =0;
+    let temp=0;
+    for(let col=0; col< matrix[newriga].length; col++){
+      for(; newriga< matrix.length;newriga++){
+        text += `\nm${newriga}j${col}`;
+        if(newriga!=matrix.length-1){
+          text += "\n+";
+        }
+      }
+      newriga=temp;
+      text += "\n=1;";
+    }
+
+    setData(text);
+  };
+
+  const trasformaMatrix = (matrix, matrixRowLength, matrixColLength) => {
+    let lineNum = ((matrix[0].length) / 2) - 1;
+    const colNum = matrix.length;
+
+    const newMatrix = new Array(lineNum);
+    for (let i = 0; i < newMatrix.length; i++) {
+      newMatrix[i] = new Array(colNum);
+    }
+
+    let newMatrixRow =0;
+    let newMatrixCol;
+    for(let matrixCol = 1; matrixCol < matrixColLength - 2; matrixCol++){
+      newMatrixCol = 0;
+      for(let matrixRow=0; matrixRow < matrixRowLength; matrixRow++){
+        newMatrix[newMatrixRow][newMatrixCol]=matrix[matrixRow][matrixCol];
+        newMatrixCol++;
+      }
+      newMatrixRow++;
+      matrixCol++;
+    }
+
+    return newMatrix;
   };
 
   const download = (data, filename, type) => {
-    //var file = new Blob([data], {type: type});
     var file = new Blob([data], {type: type});
     if (window.navigator.msSaveOrOpenBlob) // IE10+
       window.navigator.msSaveOrOpenBlob(file, filename);
@@ -109,7 +163,7 @@ function Dashboard() {
                     color: "success",
                     label: "Download LPSOLVE/CPLEX file",
                   }}
-                  download={() => download("text","test.lpt","text")}
+                  download={() => download(data,"result.lpt","text")}
               />
             </MDBox>
           </Grid>
