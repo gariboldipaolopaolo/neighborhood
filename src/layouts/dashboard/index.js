@@ -3,6 +3,7 @@ import Grid from "@mui/material/Grid";
 
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
+import DownloadIcon from '@mui/icons-material/Download';
 
 // Material Dashboard 2 React example components
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
@@ -24,6 +25,7 @@ import Button from "@mui/material/Button";
 function Dashboard() {
   const { sales, tasks } = reportsLineChartData;
   const [result, setResult] = useState(0);
+  const [data, setData] = useState("");
   const date = Date.now();
   const lastRunDate = `Il risultato risale all'operazione lanciata in data ${new Date(date)}`;
   const description = `Il valore ottimo, alla peggio, si discosta dal nostro risultato del ${result}%`;
@@ -69,6 +71,29 @@ function Dashboard() {
     reader.readAsText(e.target.files[0]);
   };
 
+  const generateLpSolveText = () => {
+    
+  };
+
+  const download = (data, filename, type) => {
+    //var file = new Blob([data], {type: type});
+    var file = new Blob([data], {type: type});
+    if (window.navigator.msSaveOrOpenBlob) // IE10+
+      window.navigator.msSaveOrOpenBlob(file, filename);
+    else { // Others
+      var a = document.createElement("a"),
+          url = URL.createObjectURL(file);
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(function() {
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+      }, 0);
+    }
+  }
+
   return (
     <DashboardLayout>
       <DashboardNavbar />
@@ -77,14 +102,14 @@ function Dashboard() {
           <Grid item xs={12} md={6} lg={4}>
             <MDBox mb={1.5}>
               <ComplexStatisticsCard
-                  icon="leaderboard"
-                  title="Today's Users"
-                  count="2,300"
+                  icon="download"
+                  title="LPSOLVE/CPLEX"
+                  count=".lpt"
                   percentage={{
                     color: "success",
-                    amount: "+3%",
-                    label: "than last month",
+                    label: "Download LPSOLVE/CPLEX file",
                   }}
+                  download={() => download("text","test.lpt","text")}
               />
             </MDBox>
           </Grid>
