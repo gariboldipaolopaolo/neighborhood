@@ -152,6 +152,17 @@ function Dashboard() {
     <DashboardLayout>
       <DashboardNavbar />
       <MDBox py={3}>
+        <MDBox mt={0}>
+          <Grid container spacing={3}>
+            <Grid item xs={12} md={12} lg={12}>
+              <MDBox mb={3}>
+                <Button variant="contained" component="label">
+                  <input type="file" onChange={(e) => handleFile(e)} />
+                </Button>
+              </MDBox>
+            </Grid>
+          </Grid>
+        </MDBox>
         <Grid container spacing={3}>
           <Grid item xs={12} md={6} lg={4}>
             <MDBox mb={1.5}>
@@ -235,17 +246,6 @@ function Dashboard() {
                     date="just updated"
                     chart={tasks}
                 />
-              </MDBox>
-            </Grid>
-          </Grid>
-        </MDBox>
-        <MDBox mt={0}>
-          <Grid container spacing={3}>
-            <Grid item xs={12} md={12} lg={12}>
-              <MDBox mb={3}>
-                <Button variant="contained" component="label">
-                  <input type="file" onChange={(e) => handleFile(e)} />
-                </Button>
               </MDBox>
             </Grid>
           </Grid>
