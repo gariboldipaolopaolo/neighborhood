@@ -43,7 +43,7 @@ function Dashboard() {
       const matrix = new Array(lineNum);
 
       for (let i = 0; i < matrix.length; i++) {
-        matrix[i] = new Array(rowNum);
+        matrix[i] = new Array(rowNum - 2);
       }
 
       let line = 0;
@@ -52,11 +52,14 @@ function Dashboard() {
 
       while (line < lines.length) {
         if (t > 1) {
+          debugger;
           const parts = lines[line].split("\t");
-          parts.shift();
-          parts.pop();
+          if(parts[0] === '')
+            parts.shift();
+          if(parts[parts.length - 1] === '')
+            parts.pop();
           let col = 0;
-          for (let i = 0; i < rowNum - 2; i++) {
+          for (let i = 0; i < parts.length; i++) {
             let time;
             time = parseInt(parts[i]);
             matrix[riga][col] = time;
@@ -67,7 +70,7 @@ function Dashboard() {
         line++;
         t++;
       }
-      debugger;
+
       const newMatrix = trasformaMatrix(matrix, lineNum, rowNum);
       generateLpSolveText(newMatrix);
     };
@@ -75,8 +78,7 @@ function Dashboard() {
   };
 
   const generateLpSolveText = (matrix) => {
-    let text = "";
-    text += "\nmin: ";
+    let text = "min: ";
 
     for(let riga=0; riga < matrix.length; riga++){
       for(let col=0; col < matrix[riga].length; col++){
@@ -88,13 +90,13 @@ function Dashboard() {
       text += "\n";
     }
 
-    text += "\n\nConstraints: ";
+    text += "\n\n/*Constraints: */";
 
     let newriga =0;
     let temp=0;
     for(let col=0; col< matrix[newriga].length; col++){
       for(; newriga< matrix.length;newriga++){
-        text += `\nm${newriga}j${col}`;
+        text += `\nm${newriga}j${col}*${matrix[newriga][col]}`;
         if(newriga!=matrix.length-1){
           text += "\n+";
         }
@@ -107,7 +109,8 @@ function Dashboard() {
   };
 
   const trasformaMatrix = (matrix, matrixRowLength, matrixColLength) => {
-    let lineNum = ((matrix[0].length) / 2) - 1;
+    debugger;
+    let lineNum = ((matrix[0].length) / 2);
     const colNum = matrix.length;
 
     const newMatrix = new Array(lineNum);
@@ -174,7 +177,7 @@ function Dashboard() {
                     color: "success",
                     label: "Download LPSOLVE/CPLEX file",
                   }}
-                  download={() => download(data,"result.lpt","text")}
+                  download={() => download(data,"result.lp","text")}
               />
             </MDBox>
           </Grid>
