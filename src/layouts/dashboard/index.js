@@ -22,6 +22,7 @@ import {useEffect, useState} from "react";
 import Button from "@mui/material/Button";
 import MDInput from "../../components/MDInput";
 import {TextField} from "@mui/material";
+import HorizontalBarChart from "../../examples/Charts/BarCharts/HorizontalBarChart";
 
 function Dashboard() {
   const { sales, tasks } = reportsLineChartData;
@@ -75,8 +76,8 @@ function Dashboard() {
         t++;
       }
 
+      setMatrix(matrix);
       const newMatrix = trasformaMatrix(matrix, lineNum, rowNum);
-      setMatrix(newMatrix);
       generateLpSolveText(newMatrix);
     };
     reader.readAsText(e.target.files[0]);
@@ -160,23 +161,31 @@ function Dashboard() {
       setLpValue(event.target.value);
   };
 
+  const [worker, setWorker] = useState(null);
   let s0Worker;
-  const findS0 = () => {
+  const findS0 = async () => {
     s0Worker = new Worker('findS0Worker.js');
+    setWorker(s0Worker);
 
-    if(isRunning === false)
+    if(isRunning === false){
       setIsRunning(true);
+    }
 
     s0Worker.postMessage(matrix);
 
     s0Worker.onmessage = (ev) => {
-      setS0Value(ev.data);
-      setIsRunning(false);
+      setS0Value(ev.data.maxTime);
+      if(ev.data.finished){
+        s0Worker.terminate();
+        setIsRunning(false)
+      }
     };
   };
 
-  const terminateS0Finder = () => {
-    s0Worker.terminate();
+  const terminateS0 = () => {
+    debugger
+    worker.terminate();
+    setIsRunning(false);
   };
 
   return (
@@ -219,17 +228,31 @@ function Dashboard() {
           </Grid>
           <Grid item xs={12} md={6} lg={4}>
             <MDBox mb={1.5}>
-              <ComplexStatisticsCard
-                  color={!isRunning ? "success" : "error"}
-                  icon={!isRunning ? "S" : "stop"}
-                  title="Soluzione S0"
-                  count={`${s0Value} ms`}
-                  percentage={{
-                    color: "success",
-                    label: "Find S0 solution",
-                  }}
-                  action={!isRunning ? () => findS0() : () => terminateS0Finder()}
-              />
+              {!isRunning
+                  ? (<ComplexStatisticsCard
+                      color={"success"}
+                      icon={"S"}
+                      title="Soluzione S0"
+                      count={`${s0Value} ms`}
+                      percentage={{
+                        color: "success",
+                        label: "Find S0 solution",
+                      }}
+                      action={() => findS0()}
+                  />)
+                  : (<ComplexStatisticsCard
+                      color={"error"}
+                      icon={"stop"}
+                      title="Soluzione S0"
+                      count={`${s0Value} ms`}
+                      percentage={{
+                        color: "success",
+                        label: "Find S0 solution",
+                      }}
+                      action={() => terminateS0()}
+                  />)
+              }
+
             </MDBox>
           </Grid>
           <Grid item xs={12} md={6} lg={4}>
@@ -252,16 +275,12 @@ function Dashboard() {
           <Grid container spacing={3}>
             <Grid item xs={12} md={6} lg={6}>
               <MDBox mb={3}>
-                <ReportsLineChart
-                    color="success"
-                    title="daily sales"
-                    description={
-                      <>
-                        (<strong>+15%</strong>) increase in today sales.
-                      </>
-                    }
-                    date="updated 4 min ago"
-                    chart={sales}
+                <ReportsBarChart
+                    color="info"
+                    title="website views"
+                    description="Last Campaign Performance"
+                    date="campaign sent 2 days ago"
+                    chart={reportsBarChartData}
                 />
               </MDBox>
             </Grid>
