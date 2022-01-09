@@ -27,6 +27,7 @@ import Button from "@mui/material/Button";
 import MDInput from "../../components/MDInput";
 import {TextField} from "@mui/material";
 import HorizontalBarChart from "../../examples/Charts/BarCharts/HorizontalBarChart";
+import {last} from "chroma-js/src/utils";
 
 function Dashboard() {
   const { sales, tasks } = reportsLineChartData;
@@ -204,6 +205,12 @@ function Dashboard() {
     setBarChartDataValue(barChartData);
   }, [lpValue, s0Value]);
 
+  const [delta, setDelta] = useState(0);
+
+  useEffect(() => {
+    setDelta(((s0Value - lpValue) / lpValue) * 100);
+  }, [lpValue, s0Value]);
+
   return (
     <DashboardLayout>
       <DashboardNavbar />
@@ -292,9 +299,9 @@ function Dashboard() {
               <MDBox mb={3}>
                 <ReportsBarChart
                     color="info"
-                    title="website views"
-                    description="Last Campaign Performance"
-                    date="campaign sent 2 days ago"
+                    title="% di ERRORE"
+                    description={`La % di errore è del: ${delta}%. Il valore ottimo si trova tra ${lpValue}ms e ${s0Value}ms`}
+                    date={lastRunDate}
                     chart={barChartDataValue}
                 />
               </MDBox>
