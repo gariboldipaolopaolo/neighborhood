@@ -25,7 +25,7 @@ import Icon from "@mui/material/Icon";
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 
-function ComplexStatisticsCard({ color, title, count, percentage, icon, download }) {
+function ComplexStatisticsCard({ color, title, count, percentage, icon, action }) {
   return (
     <Card>
       <MDBox display="flex" justifyContent="space-between" pt={1} px={2}>
@@ -42,7 +42,7 @@ function ComplexStatisticsCard({ color, title, count, percentage, icon, download
           height="4rem"
           mt={-3}
         >
-          <div onClick={download}>
+          <div onClick={action}>
             <Icon fontSize="medium" color="inherit">
               {icon}
             </Icon>

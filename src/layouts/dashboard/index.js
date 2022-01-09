@@ -1,6 +1,5 @@
 /* eslint-disable */
 import Grid from "@mui/material/Grid";
-
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
 import DownloadIcon from '@mui/icons-material/Download';
@@ -19,13 +18,19 @@ import reportsLineChartData from "layouts/dashboard/data/reportsLineChartData";
 // Dashboard components
 import Projects from "layouts/dashboard/components/Projects";
 import OrdersOverview from "layouts/dashboard/components/OrdersOverview";
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import Button from "@mui/material/Button";
+import MDInput from "../../components/MDInput";
+import {TextField} from "@mui/material";
 
 function Dashboard() {
   const { sales, tasks } = reportsLineChartData;
   const [result, setResult] = useState(0);
   const [data, setData] = useState("");
+  const [lpValue, setLpValue] = useState(0);
+  const [s0Value, setS0Value] = useState(0);
+  const [isRunning, setIsRunning] = useState(false);
+  const [matrix, setMatrix] = useState([]);
   const date = Date.now();
   const lastRunDate = `Il risultato risale all'operazione lanciata in data ${new Date(date)}`;
   const description = `Il valore ottimo, alla peggio, si discosta dal nostro risultato del ${result}%`;
@@ -52,7 +57,6 @@ function Dashboard() {
 
       while (line < lines.length) {
         if (t > 1) {
-          debugger;
           const parts = lines[line].split("\t");
           if(parts[0] === '')
             parts.shift();
@@ -72,6 +76,7 @@ function Dashboard() {
       }
 
       const newMatrix = trasformaMatrix(matrix, lineNum, rowNum);
+      setMatrix(newMatrix);
       generateLpSolveText(newMatrix);
     };
     reader.readAsText(e.target.files[0]);
@@ -110,7 +115,6 @@ function Dashboard() {
   };
 
   const trasformaMatrix = (matrix, matrixRowLength, matrixColLength) => {
-    debugger;
     let lineNum = ((matrix[0].length) / 2);
     const colNum = matrix.length;
 
@@ -150,7 +154,30 @@ function Dashboard() {
         window.URL.revokeObjectURL(url);
       }, 0);
     }
-  }
+  };
+
+  const handleLpInputChange = (event) => {
+      setLpValue(event.target.value);
+  };
+
+  let s0Worker;
+  const findS0 = () => {
+    s0Worker = new Worker('findS0Worker.js');
+
+    if(isRunning === false)
+      setIsRunning(true);
+
+    s0Worker.postMessage(matrix);
+
+    s0Worker.onmessage = (ev) => {
+      setS0Value(ev.data);
+      setIsRunning(false);
+    };
+  };
+
+  const terminateS0Finder = () => {
+    s0Worker.terminate();
+  };
 
   return (
     <DashboardLayout>
@@ -162,6 +189,14 @@ function Dashboard() {
               <MDBox mb={3}>
                 <Button variant="contained" component="label">
                   <input type="file" onChange={(e) => handleFile(e)} />
+                  <TextField
+                      required
+                      id="outlined-required"
+                      label="LPSOLVE result"
+                      value={lpValue}
+                      onChange={handleLpInputChange}
+                      type={"number"}
+                  />
                 </Button>
               </MDBox>
             </Grid>
@@ -173,27 +208,27 @@ function Dashboard() {
               <ComplexStatisticsCard
                   icon="download"
                   title="LPSOLVE/CPLEX"
-                  count=".lpt"
+                  count={`${lpValue} ms`}
                   percentage={{
                     color: "success",
                     label: "Download LPSOLVE/CPLEX file",
                   }}
-                  download={() => download(data,"result.lp","text")}
+                  action={() => download(data,"result.lp","text")}
               />
             </MDBox>
           </Grid>
           <Grid item xs={12} md={6} lg={4}>
             <MDBox mb={1.5}>
               <ComplexStatisticsCard
-                  color="success"
-                  icon="store"
-                  title="Revenue"
-                  count="34k"
+                  color={!isRunning ? "success" : "error"}
+                  icon={!isRunning ? "S" : "stop"}
+                  title="Soluzione S0"
+                  count={`${s0Value} ms`}
                   percentage={{
                     color: "success",
-                    amount: "+1%",
-                    label: "than yesterday",
+                    label: "Find S0 solution",
                   }}
+                  action={!isRunning ? () => findS0() : () => terminateS0Finder()}
               />
             </MDBox>
           </Grid>
