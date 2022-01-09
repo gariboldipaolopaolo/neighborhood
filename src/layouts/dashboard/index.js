@@ -9,7 +9,11 @@ import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import ReportsBarChart from "examples/Charts/BarCharts/ReportsBarChart";
 import ReportsLineChart from "examples/Charts/LineCharts/ReportsLineChart";
-import ComplexStatisticsCard from "examples/Cards/StatisticsCards/ComplexStatisticsCard";
+import ComplexStatisticsCard from "examples/Cards/StatisticsCards/ComplexStatisticsCard";import React from 'react';
+
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 
 // Data
 import reportsBarChartData from "layouts/dashboard/data/reportsBarChartData";
@@ -157,6 +161,8 @@ function Dashboard() {
     }
   };
 
+  const notify = () => toast("Inserire almeno un file!");
+
   const handleLpInputChange = (event) => {
       setLpValue(event.target.value);
   };
@@ -188,6 +194,16 @@ function Dashboard() {
     setIsRunning(false);
   };
 
+  let barChartData =  {
+    labels: ["LPSOLVE", "S0", "Neighborhood Algorithm"],
+    datasets: { label: "ms", data: [lpValue, s0Value, 10] },
+  };
+  const [barChartDataValue, setBarChartDataValue] = useState({});
+
+  useEffect(() => {
+    setBarChartDataValue(barChartData);
+  }, [lpValue, s0Value]);
+
   return (
     <DashboardLayout>
       <DashboardNavbar />
@@ -204,7 +220,6 @@ function Dashboard() {
                       label="LPSOLVE result"
                       value={lpValue}
                       onChange={handleLpInputChange}
-                      type={"number"}
                   />
                 </Button>
               </MDBox>
@@ -280,7 +295,7 @@ function Dashboard() {
                     title="website views"
                     description="Last Campaign Performance"
                     date="campaign sent 2 days ago"
-                    chart={reportsBarChartData}
+                    chart={barChartDataValue}
                 />
               </MDBox>
             </Grid>
