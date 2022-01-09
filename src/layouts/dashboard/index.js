@@ -90,19 +90,20 @@ function Dashboard() {
       text += "\n";
     }
 
+    text += ";";
     text += "\n\n/*Constraints: */";
 
     let newriga =0;
     let temp=0;
     for(let col=0; col< matrix[newriga].length; col++){
       for(; newriga< matrix.length;newriga++){
-        text += `\nm${newriga}j${col}*${matrix[newriga][col]}`;
+        text += `\n${matrix[newriga][col]}*m${newriga}j${col}`;
         if(newriga!=matrix.length-1){
           text += "\n+";
         }
       }
       newriga=temp;
-      text += "\n=1;";
+      text += "\n>=1;";
     }
 
     setData(text);
@@ -214,18 +215,7 @@ function Dashboard() {
         </Grid>
         <MDBox mt={4.5}>
           <Grid container spacing={3}>
-            <Grid item xs={12} md={6} lg={4}>
-              <MDBox mb={3}>
-                <ReportsBarChart
-                    color="info"
-                    title="website views"
-                    description="Last Campaign Performance"
-                    date="campaign sent 2 days ago"
-                    chart={reportsBarChartData}
-                />
-              </MDBox>
-            </Grid>
-            <Grid item xs={12} md={6} lg={4}>
+            <Grid item xs={12} md={6} lg={6}>
               <MDBox mb={3}>
                 <ReportsLineChart
                     color="success"
@@ -240,7 +230,7 @@ function Dashboard() {
                 />
               </MDBox>
             </Grid>
-            <Grid item xs={12} md={6} lg={4}>
+            <Grid item xs={12} md={6} lg={6}>
               <MDBox mb={3}>
                 <ReportsLineChart
                     color="dark"
