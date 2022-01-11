@@ -36,6 +36,7 @@ function Dashboard() {
   const [lpValue, setLpValue] = useState(0);
   const [s0Value, setS0Value] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
+  const [isNRunning, setIsNRunning] = useState(false);
   const [matrix, setMatrix] = useState([]);
   const date = Date.now();
   const lastRunDate = `Il risultato risale all'operazione lanciata in data ${new Date(date)}`;
@@ -81,8 +82,8 @@ function Dashboard() {
         t++;
       }
 
-      setMatrix(matrix);
       const newMatrix = trasformaMatrix(matrix, lineNum, rowNum);
+      setMatrix(newMatrix)
       generateLpSolveText(newMatrix);
     };
     reader.readAsText(e.target.files[0]);
@@ -168,7 +169,8 @@ function Dashboard() {
       setLpValue(event.target.value);
   };
 
-  const [worker, setWorker] = useState(null);
+  const [sworker, setWorker] = useState(null);
+  const [scheduler, setScheduler] = useState([]);
   let s0Worker;
   const findS0 = async () => {
     s0Worker = new Worker('findS0Worker.js');
@@ -182,6 +184,7 @@ function Dashboard() {
 
     s0Worker.onmessage = (ev) => {
       setS0Value(ev.data.maxTime);
+      setScheduler(ev.data.scheduler);
       if(ev.data.finished){
         s0Worker.terminate();
         setIsRunning(false)
@@ -190,9 +193,35 @@ function Dashboard() {
   };
 
   const terminateS0 = () => {
-    debugger
-    worker.terminate();
+    sworker.terminate();
     setIsRunning(false);
+  };
+
+  const [nworker, setNWorker] = useState(null);
+  const [nValue, setNValue] = useState(0);
+  let nWorker;
+  const findN = async () => {
+    nWorker = new Worker('findNWorker.js');
+    setNWorker(nWorker);
+
+    if(isNRunning === false){
+      setIsNRunning(true);
+    }
+
+    nWorker.postMessage({matrix: matrix, scheduler: scheduler});
+
+    nWorker.onmessage = (ev) => {
+      setNValue(ev.data.maxTime);
+      if(ev.data.finished){
+        nWorker.terminate();
+        setIsNRunning(false)
+      }
+    };
+  };
+
+  const terminateN = () => {
+    nworker.terminate();
+    setIsNRunning(false);
   };
 
   let barChartData =  {
@@ -279,17 +308,30 @@ function Dashboard() {
           </Grid>
           <Grid item xs={12} md={6} lg={4}>
             <MDBox mb={1.5}>
-              <ComplexStatisticsCard
-                  color="primary"
-                  icon="person_add"
-                  title="Followers"
-                  count="+91"
-                  percentage={{
-                    color: "success",
-                    amount: "",
-                    label: "Just updated",
-                  }}
-              />
+              {!isNRunning
+                  ? (<ComplexStatisticsCard
+                      color={"success"}
+                      icon={"N"}
+                      title="Soluzione Neighborhood"
+                      count={`${nValue} ms`}
+                      percentage={{
+                        color: "success",
+                        label: "Find Neighborhood solution",
+                      }}
+                      action={() => findN()}
+                  />)
+                  : (<ComplexStatisticsCard
+                      color={"error"}
+                      icon={"stop"}
+                      title="Soluzione Neighborhood"
+                      count={`${nValue} ms`}
+                      percentage={{
+                        color: "success",
+                        label: "Find Neighborhood solution",
+                      }}
+                      action={() => terminateN()}
+                  />)
+              }
             </MDBox>
           </Grid>
         </Grid>
