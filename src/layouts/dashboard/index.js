@@ -115,7 +115,7 @@ function Dashboard() {
         }
       }
       newriga=temp;
-      text += "\n>=1;";
+      text += "\n=1;";
     }
 
     setData(text);
