@@ -19,98 +19,111 @@ const applyNeighborhood = (macchine, scheduler) => {
     }
 }
 
-const findSn = (macchine, scheduler) => {
+/**
+ * Trova le soluzioni Sn
+ * @param baseMatrix matrice originale trasformata  Righe = macchine, Colonne = jobs .
+ * @param scheduler matrice con la soluzione job scheduling alla iterazione N; la matrice presenta degli zeri dove il job non viene processato dalla macchina corrispondente ed i valori (in ms) in caso contrario.
+ * @returns [][] nuova matrice soluzione
+ */
+const findSn = (baseMatrix, scheduler) => {
+    //istanziamo la nuova matrice soluzione
     let newScheduler = new Array(scheduler.length);
     for (let i = 0; i < newScheduler.length; i++) {
         newScheduler[i] = new Array(scheduler[0].length);
     }
 
-    const tempi = calcolaTempi(scheduler); // crea array di tempi di ciascuna macchine
-    const massimoImpegnato = tempi.sort((a,b) => parseInt(a) - parseInt(b))[tempi.length -1]; // cerca massimo dei tempi tra le macchine -> per capire da quale macchina togliere un job
-    const numeroMacchinaMax = trovaNumeroMacchina(tempi,massimoImpegnato); // trova numero macchina corrispondente al tempo massimo
+    const timeArray = computeTime(scheduler);
+    const timeArrayCopy = timeArray.slice(0);
+    const maxTime = timeArrayCopy.sort((a,b) => parseInt(a) - parseInt(b))[timeArrayCopy.length -1]; //prendo il tempo massimo della macchina più carica.
+    const machineNumber = timeArray.indexOf(maxTime);
+    const schedulerCopy = scheduler.map((arr) => arr.slice());
+    const minTime = schedulerCopy[machineNumber].sort((a,b) => parseInt(a) - parseInt(b))[0]; // trova minimo nella macchina per capire il numero della colonna e quindi il numero del job
+    const jobNumber = findJobNumber(scheduler, machineNumber, minTime);
+    scheduler[machineNumber][jobNumber]=0; // azzera il job da spostare nel scheduler
+    const nextMinValue = findNextMinValue(baseMatrix, minTime, jobNumber);
+    const arrayTemp = new Array(baseMatrix.length);
 
-    for(let col=0; col< scheduler[numeroMacchinaMax].length; col++){
-        if(scheduler[numeroMacchinaMax][col]>0){
-            console.log(scheduler[numeroMacchinaMax][col] +",");
-        }
+    for(let s = 0; s<arrayTemp.length;s++){
+        arrayTemp[s] = baseMatrix[s][jobNumber];
     }
 
-    const m = scheduler[numeroMacchinaMax].sort((a,b) => parseInt(a) - parseInt(b))[0]; // trova minimo nella macchina per capire il numero della colonna e quindi il numero del job
-    let jobDaSpostare = togliDallaMacchina(scheduler,numeroMacchinaMax,m);
+    const newJobNumber = arrayTemp.indexOf(nextMinValue);
+    scheduler[newJobNumber][jobNumber] = nextMinValue;
 
-    scheduler[numeroMacchinaMax][jobDaSpostare]=0; // azzera il job da spostare nel scheduler
-    const tempoJobDaAggiungere= trovaNuovoTempoDelJobDaSpostare(macchine,m,jobDaSpostare); // cerca il prossimo minimo tra i tempi nella colonna del job
-    const arrayTemp = new Array(macchine.length);
-
-    for(let s=0; s<arrayTemp.length;s++){
-        arrayTemp[s]=macchine[s][jobDaSpostare];
-        console.log(arrayTemp[s]+" ");
-    }
-    let numeroMacchinaNuovoTempo =trovaNumeroMacchina(arrayTemp,tempoJobDaAggiungere);
-
-    scheduler[numeroMacchinaNuovoTempo][jobDaSpostare]=tempoJobDaAggiungere;
     stampaScheduler(scheduler);
-    for(let d=0; d<tempi.length;d++){
-        tempi[d]=0;
+
+    for(let i = 0; i < timeArray.length; i++){
+        timeArray[i] = 0;
     }
-    for (let q=0; q<scheduler.length; q++){
-        for (let u=0; u<scheduler[q].length; u++){
-            newScheduler[q][u]=scheduler[q][u];
+
+    for (let i = 0; i < scheduler.length; i++){
+        for (let j = 0; j <scheduler[i].length; j++){
+            newScheduler[i][j]=scheduler[i][j];
         }
     }
+
     return newScheduler;
 }
 
-const calcolaTempi = (scheduler) => {
-    const tempi = new Array(scheduler.length);
-    let t=0;
-    let tempoMacchina=0;
-    let tempoT=0;
-    for(let r=0; r<scheduler.length; r++){
-        for(let col=0; col< scheduler[r].length; col++){
-            if(scheduler[r][col]>0){
-                tempoMacchina += scheduler[r][col];
+/**
+ * Troviamo i totali in ms per ogni macchina
+ * @param scheduler
+ * @returns {any[]}
+ */
+const computeTime = (scheduler) => {
+    const timeArray = new Array(scheduler.length);
+    let t = 0;
+    let singleMachineTotalTime = 0;
+
+    for(let row = 0; row < scheduler.length; row++){
+        for(let col=0; col< scheduler[row].length; col++){
+            if(scheduler[row][col] > 0){
+                singleMachineTotalTime += scheduler[row][col];
             }
         }
-        tempi[t]=tempoMacchina;
+        timeArray[t] = singleMachineTotalTime;
         t++;
-        tempoT += tempoMacchina;
-        tempoMacchina=0;
+        singleMachineTotalTime = 0;
     }
-    return tempi;
+    return timeArray;
 }
 
-const trovaNumeroMacchina = (tempi, impegnato) => {
-    for(let t=0; t<tempi.length; t++){
-        if(impegnato===tempi[t]){
-            return t;
-        }
-    }
-    return 0;
-}
-
-const togliDallaMacchina = (mac, numeroMacchinaMax, m) => {
-    for(let u=0; u<mac[numeroMacchinaMax].length; u++){
-        if(mac[numeroMacchinaMax][u]===m){
+/**
+ * Trova il numero del job su cui cerchere il minimo più vicino (il suo neighbor che costa meno)
+ * @param scheduler
+ * @param machineNumber
+ * @param minTime
+ * @returns {number}
+ */
+const findJobNumber = (scheduler, machineNumber, minTime) => {
+    for(let u = 0; u < scheduler[machineNumber].length; u++){
+        if(scheduler[machineNumber][u] === minTime){
             return u;
         }
     }
     return 0;
 }
 
-const trovaNuovoTempoDelJobDaSpostare = (mac, m, jobDaSpostare) => {
-    const array = new Array(mac.length);
-    let minimoSucessivo=0;
-    for(let r=0; r<mac.length; r++){
-        array[r]=mac[r][jobDaSpostare];
+/**
+ * Trova il il nuovo minimo (in ms) per il job per cui verrà effettuoato lo swap
+ * @param baseMatrix
+ * @param mintime
+ * @param jobNumber
+ * @returns {number}
+ */
+const findNextMinValue = (baseMatrix, mintime, jobNumber) => {
+    const array = new Array(baseMatrix.length);
+    let nextMinValue =  0;
+    for(let r = 0; r < baseMatrix.length; r++){
+        array[r] = baseMatrix[r][jobNumber];
     }
     array.sort((a,b) => parseInt(a) - parseInt(b)); // sortare l'array da più piccolo al più grande
-    for(let r=0; r<array.length; r++){
-        if(m===array[r]){
-            minimoSucessivo=array[r+1];
+    for(let r = 0; r<array.length; r++){
+        if(mintime === array[r]){
+            nextMinValue = array[r+1];
         }
     }
-    return minimoSucessivo;
+    return nextMinValue;
 }
 
 const stampaScheduler = (scheduler) => {
