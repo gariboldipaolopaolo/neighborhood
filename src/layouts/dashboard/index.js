@@ -200,7 +200,8 @@ function Dashboard() {
   const [nworker, setNWorker] = useState(null);
   const [nValue, setNValue] = useState(0);
   let nWorker;
-  const findN = async () => {
+
+  const findN = async (scheduler) => {
     nWorker = new Worker('findNWorker.js');
     setNWorker(nWorker);
 
@@ -208,7 +209,7 @@ function Dashboard() {
       setIsNRunning(true);
     }
 
-    nWorker.postMessage({matrix: matrix, scheduler: scheduler});
+    nWorker.postMessage({matrix, scheduler , s0Value});
 
     nWorker.onmessage = (ev) => {
       setNValue(ev.data.maxTime);
@@ -318,7 +319,7 @@ function Dashboard() {
                         color: "success",
                         label: "Find Neighborhood solution",
                       }}
-                      action={() => findN()}
+                      action={() => findN(scheduler)}
                   />)
                   : (<ComplexStatisticsCard
                       color={"error"}
