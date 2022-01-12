@@ -124,7 +124,7 @@ function Dashboard() {
   const trasformaMatrix = (matrix, matrixRowLength, matrixColLength) => {
     let lineNum = ((matrix[0].length) / 2);
     const colNum = matrix.length;
-
+    debugger;
     const newMatrix = new Array(lineNum);
     for (let i = 0; i < newMatrix.length; i++) {
       newMatrix[i] = new Array(colNum);

@@ -7,7 +7,7 @@ let data = {
 
 self.onmessage = (ev) => {
     const matrix = ev.data.matrix;
-
+    debugger;
     data.bestSolution = ev.data.s0Value;
     data.newScheduler = ev.data.scheduler;
     data.bestScheduler = ev.data.scheduler;
@@ -21,7 +21,7 @@ self.onmessage = (ev) => {
 }
 
 const applyNeighborhood = (baseMatrix) => {
-    for(let q=0;q<40;q++){
+    for(let q=0;q<5;q++){
         data.newScheduler = findSn(baseMatrix, data.newScheduler);
     }
 }
@@ -56,10 +56,8 @@ const findSn = (baseMatrix, scheduler) => {
     }
     //const minTime = schedulerCopy[machineNumber].sort((a,b) => parseInt(a) - parseInt(b))[]; // trova minimo nella macchina per capire il numero della colonna e quindi il numero del job
     const jobNumber = findJobNumber(scheduler, machineNumber, minTime);
-    scheduler[machineNumber][jobNumber]=0; // azzera il job da spostare nel scheduler
+    scheduler[machineNumber][jobNumber] = 0; // azzera il job da spostare nel scheduler
     const nextMinValue = findNextMinValue(baseMatrix, minTime, jobNumber);
-    if(typeof nextMinValue === 'undefined')
-        debugger;
 
     const arrayTemp = new Array(baseMatrix.length);
 
@@ -138,25 +136,14 @@ const findJobNumber = (scheduler, machineNumber, minTime) => {
  */
 const findNextMinValue = (baseMatrix, mintime, jobNumber) => {
     const array = new Array(baseMatrix.length);
-    let nextMinValue =  0;
     for(let r = 0; r < baseMatrix.length; r++){
         array[r] = baseMatrix[r][jobNumber];
     }
+
     array.sort((a,b) => parseInt(a) - parseInt(b)); // sortare l'array da più piccolo al più grande
-    for(let r = 0; r<array.length; r++){
-        if(mintime === array[r] ){
-            nextMinValue = array[r+1];
-        }//else{
-            // for(let i = 0; i < array.length; i++){
-            //     if(array[i] === 0){
-            //         continue;
-            //     }
-                //nextMinValue = array[0];
-                //break;
-            //}
-        //}
-    }
-    return nextMinValue;
+    const indexMinTime = array.indexOf(mintime);
+
+    return array[indexMinTime + 1];
 }
 
 const stampaScheduler = (scheduler) => {
