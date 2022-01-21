@@ -12,11 +12,6 @@ import reportsLineChartData from "layouts/dashboard/data/reportsLineChartData";
 import {useEffect, useState} from "react";
 import Button from "@mui/material/Button";
 import {TextField} from "@mui/material";
-import CustomizedTables, {BasicTable} from "../../components/table/BasicTable";
-import DataTable from "../../examples/Tables/DataTable";
-import MDTypography from "../../components/MDTypography";
-import Icon from "@mui/material/Icon";
-import MDProgress from "../../components/MDProgress";
 
 function Dashboard() {
   const { sales, tasks } = reportsLineChartData;
@@ -240,10 +235,27 @@ function Dashboard() {
     setSolIndex(index);
   }, [nValue]);
 
+  const [labels, setLabels] = useState([]);
+  const [sn, setSn] = useState([]);
+
+  const chartData = {
+      labels: labels,
+      datasets: { label: "Solutions", data: sn },
+  };
+  const [cdata, setCData] = useState({});
+
+  useEffect(() => {
+    setLabels([...labels, `S${solIndex}`]);
+    setSn([...sn, nValue]);
+    setCData(chartData);
+  },[nValue]);
+
   const terminateN = () => {
     nworker.terminate();
     setIsNRunning(false);
   };
+
+
 
   let barChartData =  {
     labels: ["LPSOLVE", "S0", "Neighborhood Algorithm"],
@@ -366,7 +378,7 @@ function Dashboard() {
                     title="Soluzioni locali"
                     description={`La migliore delle soluzioni locali è: ${nValue}ms`}
                     date={snDate}
-                    chart={tasks}
+                    chart={cdata}
                 />
               </MDBox>
             </Grid>
