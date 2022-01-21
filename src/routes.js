@@ -1,4 +1,3 @@
-// Material Dashboard 2 React layouts
 import Dashboard from "layouts/dashboard";
 
 // @mui icons

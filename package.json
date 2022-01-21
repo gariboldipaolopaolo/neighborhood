@@ -1,16 +1,15 @@
 {
-  "name": "material-dashboard-2-react",
-  "version": "2.0.0",
+  "name": "neighborhood-algorithm-project",
+  "version": "1.0.0",
   "private": true,
-  "author": "Creative Tim",
-  "license": "See license in https://www.creative-tim.com/license",
-  "description": "React version of Material Dashboard 2 by Cresative Tim",
+  "author": "Paolo Gariboldi - Gulsina Bikbaeva",
+  "license": "",
+  "description": "Implemented neighborhood algorithm",
   "bugs": {
-    "url": "https://github.com/creativetimofficial/material-dashboard-react/issues"
+    "url": "https://github.com/gariboldipaolopaolo/neighborhood-algorithm/issues"
   },
   "repository": {
-    "type": "git",
-    "url": "git+https://github.com/creativetimofficial/material-dashboard-react.git"
+    "type": "git"
   },
   "engines": {
     "node": "14 || 15 || 16",

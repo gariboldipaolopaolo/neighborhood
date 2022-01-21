@@ -1,33 +1,22 @@
-/* eslint-disable */
 import Grid from "@mui/material/Grid";
-// Material Dashboard 2 React components
 import MDBox from "components/MDBox";
-import DownloadIcon from '@mui/icons-material/Download';
-
-// Material Dashboard 2 React example components
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import ReportsBarChart from "examples/Charts/BarCharts/ReportsBarChart";
 import ReportsLineChart from "examples/Charts/LineCharts/ReportsLineChart";
-import ComplexStatisticsCard from "examples/Cards/StatisticsCards/ComplexStatisticsCard";import React from 'react';
-
+import ComplexStatisticsCard from "examples/Cards/StatisticsCards/ComplexStatisticsCard";
+import React from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-
-
-// Data
-import reportsBarChartData from "layouts/dashboard/data/reportsBarChartData";
 import reportsLineChartData from "layouts/dashboard/data/reportsLineChartData";
-
-// Dashboard components
-import Projects from "layouts/dashboard/components/Projects";
-import OrdersOverview from "layouts/dashboard/components/OrdersOverview";
 import {useEffect, useState} from "react";
 import Button from "@mui/material/Button";
-import MDInput from "../../components/MDInput";
 import {TextField} from "@mui/material";
-import HorizontalBarChart from "../../examples/Charts/BarCharts/HorizontalBarChart";
-import {last} from "chroma-js/src/utils";
+import CustomizedTables, {BasicTable} from "../../components/table/BasicTable";
+import DataTable from "../../examples/Tables/DataTable";
+import MDTypography from "../../components/MDTypography";
+import Icon from "@mui/material/Icon";
+import MDProgress from "../../components/MDProgress";
 
 function Dashboard() {
   const { sales, tasks } = reportsLineChartData;
@@ -37,16 +26,14 @@ function Dashboard() {
   const [s0Value, setS0Value] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
   const [isNRunning, setIsNRunning] = useState(false);
+  const [jobMatrix, setJobMatrix] = useState([]);
   const [matrix, setMatrix] = useState([]);
-  const date = Date.now();
-  const lastRunDate = `Il risultato risale all'operazione lanciata in data ${new Date(date)}`;
-  const description = `Il valore ottimo, alla peggio, si discosta dal nostro risultato del ${result}%`;
+
   const handleFile = async (e) => {
     e.preventDefault();
     const reader = new FileReader();
     reader.onload = async (e) => {
       const text = e.target.result;
-      console.log(text);
 
       // By lines
       const lines = text.split("\n");
@@ -82,6 +69,7 @@ function Dashboard() {
         t++;
       }
 
+      setJobMatrix(matrix);
       const newMatrix = trasformaMatrix(matrix, lineNum, rowNum);
       setMatrix(newMatrix)
       generateLpSolveText(newMatrix);
@@ -95,7 +83,7 @@ function Dashboard() {
     for(let riga=0; riga < matrix.length; riga++){
       for(let col=0; col < matrix[riga].length; col++){
         text += `\n${matrix[riga][col]}*m${riga}j${col}`;
-        if(col!=matrix[riga].length-1){
+        if(col !== matrix[riga].length-1){
           text += "\n+";
         }
       }
@@ -110,7 +98,7 @@ function Dashboard() {
     for(let col=0; col< matrix[newriga].length; col++){
       for(; newriga< matrix.length;newriga++){
         text += `\n${matrix[newriga][col]}*m${newriga}j${col}`;
-        if(newriga!=matrix.length-1){
+        if(newriga !== matrix.length-1){
           text += "\n+";
         }
       }
@@ -124,7 +112,6 @@ function Dashboard() {
   const trasformaMatrix = (matrix, matrixRowLength, matrixColLength) => {
     let lineNum = ((matrix[0].length) / 2);
     const colNum = matrix.length;
-    debugger;
     const newMatrix = new Array(lineNum);
     for (let i = 0; i < newMatrix.length; i++) {
       newMatrix[i] = new Array(colNum);
@@ -146,11 +133,11 @@ function Dashboard() {
   };
 
   const download = (data, filename, type) => {
-    var file = new Blob([data], {type: type});
+    let file = new Blob([data], {type: type});
     if (window.navigator.msSaveOrOpenBlob) // IE10+
       window.navigator.msSaveOrOpenBlob(file, filename);
     else { // Others
-      var a = document.createElement("a"),
+      let a = document.createElement("a"),
           url = URL.createObjectURL(file);
       a.href = url;
       a.download = filename;
@@ -169,17 +156,29 @@ function Dashboard() {
       setLpValue(event.target.value);
   };
 
+  const [s0Date, setS0Date] = useState("");
   const [sworker, setWorker] = useState(null);
   const [scheduler, setScheduler] = useState([]);
   let s0Worker;
   const findS0 = async () => {
+    if(jobMatrix.length === 0){
+      alert('Inserire almeno un istanza!');
+      return;
+    }
+    if(lpValue === 0){
+      alert('Inserire il valore trovato con LPSOLVER!');
+      return;
+    }
+
     s0Worker = new Worker('findS0Worker.js');
     setWorker(s0Worker);
 
     if(isRunning === false){
       setIsRunning(true);
     }
-
+    const date = Date.now();
+    const lastRunDate = `Il risultato risale all'operazione lanciata in data ${new Date(date)}`;
+    setS0Date(lastRunDate);
     s0Worker.postMessage(matrix);
 
     s0Worker.onmessage = (ev) => {
@@ -200,8 +199,21 @@ function Dashboard() {
   const [nworker, setNWorker] = useState(null);
   const [nValue, setNValue] = useState(0);
   let nWorker;
-
+  const [solIndex, setSolIndex] = useState(1);
+  const [snDate, setSnDate] = useState("");
   const findN = async (scheduler) => {
+    if(jobMatrix.length === 0){
+      alert('Inserire almeno un istanza!');
+      return;
+    }
+    if(lpValue === 0){
+      alert('Inserire il valore trovato con LPSOLVER!');
+      return;
+    }
+    if(s0Value === 0){
+      alert('Trovare la soluzione S0!');
+      return;
+    }
     nWorker = new Worker('findNWorker.js');
     setNWorker(nWorker);
 
@@ -209,16 +221,24 @@ function Dashboard() {
       setIsNRunning(true);
     }
 
+    const date = Date.now();
+    const lastRunDate = `Il risultato risale all'operazione lanciata in data ${new Date(date)}`;
+    setSnDate(lastRunDate);
     nWorker.postMessage({matrix, scheduler , s0Value});
 
     nWorker.onmessage = (ev) => {
-      setNValue(ev.data.maxTime);
+      setNValue(ev.data.bestSolution);
       if(ev.data.finished){
         nWorker.terminate();
         setIsNRunning(false)
       }
     };
   };
+
+  useEffect(() => {
+    const index = solIndex + 1;
+    setSolIndex(index);
+  }, [nValue]);
 
   const terminateN = () => {
     nworker.terminate();
@@ -227,19 +247,20 @@ function Dashboard() {
 
   let barChartData =  {
     labels: ["LPSOLVE", "S0", "Neighborhood Algorithm"],
-    datasets: { label: "ms", data: [lpValue, s0Value, 10] },
+    datasets: { label: "ms", data: [lpValue, s0Value, nValue] },
   };
   const [barChartDataValue, setBarChartDataValue] = useState({});
 
   useEffect(() => {
     setBarChartDataValue(barChartData);
-  }, [lpValue, s0Value]);
+  }, [lpValue, s0Value ,nValue]);
 
   const [delta, setDelta] = useState(0);
 
   useEffect(() => {
-    setDelta(((s0Value - lpValue) / lpValue) * 100);
-  }, [lpValue, s0Value]);
+    setDelta(nValue !== 0 && lpValue !== 0 ? ((nValue - lpValue) / lpValue) * 100 : 0);
+  }, [lpValue, nValue]);
+
 
   return (
     <DashboardLayout>
@@ -272,7 +293,7 @@ function Dashboard() {
                   count={`${lpValue} ms`}
                   percentage={{
                     color: "success",
-                    label: "Download LPSOLVE/CPLEX file",
+                    label: "Scarica il file LPSOLVE/CPLEX",
                   }}
                   action={() => download(data,"result.lp","text")}
               />
@@ -288,7 +309,7 @@ function Dashboard() {
                       count={`${s0Value} ms`}
                       percentage={{
                         color: "success",
-                        label: "Find S0 solution",
+                        label: "Trova la soluzione S0",
                       }}
                       action={() => findS0()}
                   />)
@@ -299,7 +320,7 @@ function Dashboard() {
                       count={`${s0Value} ms`}
                       percentage={{
                         color: "success",
-                        label: "Find S0 solution",
+                        label: "Trova la soluzione S0",
                       }}
                       action={() => terminateS0()}
                   />)
@@ -317,7 +338,7 @@ function Dashboard() {
                       count={`${nValue} ms`}
                       percentage={{
                         color: "success",
-                        label: "Find Neighborhood solution",
+                        label: "Trova la soluzione Neighborhood",
                       }}
                       action={() => findN(scheduler)}
                   />)
@@ -328,7 +349,7 @@ function Dashboard() {
                       count={`${nValue} ms`}
                       percentage={{
                         color: "success",
-                        label: "Find Neighborhood solution",
+                        label: "Trova la soluzione Neighborhood",
                       }}
                       action={() => terminateN()}
                   />)
@@ -338,25 +359,29 @@ function Dashboard() {
         </Grid>
         <MDBox mt={4.5}>
           <Grid container spacing={3}>
-            <Grid item xs={12} md={6} lg={6}>
+            <Grid item xs={12} md={12} lg={12}>
+              <MDBox mb={3}>
+                <ReportsLineChart
+                    color="dark"
+                    title="Soluzioni locali"
+                    description={`La migliore delle soluzioni locali è: ${nValue}ms`}
+                    date={snDate}
+                    chart={tasks}
+                />
+              </MDBox>
+            </Grid>
+          </Grid>
+        </MDBox>
+        <MDBox mt={4.5}>
+          <Grid container spacing={3}>
+            <Grid item xs={12} md={12} lg={12}>
               <MDBox mb={3}>
                 <ReportsBarChart
                     color="info"
                     title="% di ERRORE"
-                    description={`La % di errore è del: ${delta}%. Il valore ottimo si trova tra ${lpValue}ms e ${s0Value}ms`}
-                    date={lastRunDate}
+                    description={`La % di errore è del: ${delta}%. Il valore ottimo si trova tra ${lpValue}ms e ${nValue}ms`}
+                    date={s0Date}
                     chart={barChartDataValue}
-                />
-              </MDBox>
-            </Grid>
-            <Grid item xs={12} md={6} lg={6}>
-              <MDBox mb={3}>
-                <ReportsLineChart
-                    color="dark"
-                    title="completed tasks"
-                    description="Last Campaign Performance"
-                    date="just updated"
-                    chart={tasks}
                 />
               </MDBox>
             </Grid>

@@ -7,7 +7,6 @@ let data = {
 
 self.onmessage = (ev) => {
     const matrix = ev.data.matrix;
-    debugger;
     data.bestSolution = ev.data.s0Value;
     data.newScheduler = ev.data.scheduler;
     data.bestScheduler = ev.data.scheduler;
@@ -15,14 +14,12 @@ self.onmessage = (ev) => {
     applyNeighborhood(matrix);
 
     data.finished = true;
-    console.log('best s: '+ data.bestSolution);
-    console.log('best sched: '+ data.bestScheduler);
-    postMessage(data);
 }
 
 const applyNeighborhood = (baseMatrix) => {
-    for(let q=0;q<5;q++){
+    while(1){
         data.newScheduler = findSn(baseMatrix, data.newScheduler);
+        self.postMessage(data);
     }
 }
 
@@ -136,6 +133,7 @@ const findJobNumber = (scheduler, machineNumber, minTime) => {
  */
 const findNextMinValue = (baseMatrix, mintime, jobNumber) => {
     const array = new Array(baseMatrix.length);
+
     for(let r = 0; r < baseMatrix.length; r++){
         array[r] = baseMatrix[r][jobNumber];
     }
@@ -143,31 +141,31 @@ const findNextMinValue = (baseMatrix, mintime, jobNumber) => {
     array.sort((a,b) => parseInt(a) - parseInt(b)); // sortare l'array da più piccolo al più grande
     const indexMinTime = array.indexOf(mintime);
 
-    return array[indexMinTime + 1];
+    return indexMinTime + 1 !== array.length ? array[indexMinTime + 1] : array[0];
 }
 
 const stampaScheduler = (scheduler) => {
-    console.log("\nNuovo scheduler: ");
+    //console.log("\nNuovo scheduler: ");
     let tempoMacchina=0;
     let tempoT=0; let t=0;
     const tempi=new Array(scheduler.length);
     for(let r=0; r<scheduler.length; r++){
-        console.log("\nmacchina "+r+": ");
+        //console.log("\nmacchina "+r+": ");
         for(let col=0; col< scheduler[r].length; col++){
             if(scheduler[r][col]>0){
-                console.log(scheduler[r][col] +",");
+                //console.log(scheduler[r][col] +",");
                 tempoMacchina += scheduler[r][col];
             }
         }
-        console.log(" | tempoMacchina="+tempoMacchina);
+        //console.log(" | tempoMacchina="+tempoMacchina);
         tempi[t]=tempoMacchina;
         t++;
         tempoT += tempoMacchina;
         tempoMacchina=0;
     }
-    console.log("\n\ntempoT="+tempoT); // somma di tutti i tempi delle macchine
-    console.log("Tempo massimo impegnato dalle macchine: ");
-    console.log(tempi.sort((a,b) => parseInt(a) - parseInt(b))[tempi.length -1]);
+    //console.log("\n\ntempoT="+tempoT); // somma di tutti i tempi delle macchine
+    //console.log("Tempo massimo impegnato dalle macchine: ");
+    //console.log(tempi.sort((a,b) => parseInt(a) - parseInt(b))[tempi.length -1]);
 }
 
 

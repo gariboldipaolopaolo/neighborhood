@@ -20,6 +20,7 @@ const s0 = (mac, scheduler) => {
     let tempoTotale=0;
     let riga =0;
     let temp1=0;
+
     for(let col=0; col< mac[riga].length; col++){
         let temp = mac[riga][col];
         let macchina=0;
@@ -41,14 +42,14 @@ const s0 = (mac, scheduler) => {
 
         for(let col=0; col< scheduler[r].length; col++){
             if(scheduler[r][col]>0){
-                console.log(scheduler[r][col]+",");
+                //console.log(scheduler[r][col]+",");
                 tempoMacchina += scheduler[r][col];
             }
         }
 
         if(tempoMacchina > tempiMax)
             tempiMax = tempoMacchina;
-        data.maxTime = tempiMax
+        data.maxTime = tempiMax;
         tempoT += tempoMacchina;
         tempoMacchina=0;
     }
