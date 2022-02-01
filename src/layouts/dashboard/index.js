@@ -19,6 +19,7 @@ function Dashboard() {
   const [data, setData] = useState("");
   const [dataI, setDataI] = useState("");
   const [lpValue, setLpValue] = useState(0);
+  const [lpIValue, setLpIValue] = useState(0);
   const [s0Value, setS0Value] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
   const [isNRunning, setIsNRunning] = useState(false);
@@ -83,10 +84,14 @@ function Dashboard() {
 
     let text = 'Minimize Z\n\nSubject To\n';
     let line = '';
-    for(let j = 0; j < newMatrix.length; j++){
-      for(let m = 0; m < newMatrix[j].length; m++){
-        line += m !== newMatrix[j].length - 1 ? `X${j}${m} + ` : `X${j}${m} = 1\n`;
+    const jobNumRows = newMatrix[0].length;
+    const macNumCol = newMatrix.length;
+    let i = 0;
+    while(i < jobNumRows){
+      for(let m = 0 ; m < macNumCol ; m++){
+        line += m !== macNumCol -1 ? `X${i}${m} + ` : `X${i}${m} = 1\n`;
       }
+      i++;
     }
 
     for(let m = 0; m < newMatrix.length; m++){
@@ -118,11 +123,17 @@ function Dashboard() {
 
     let text = 'Minimize Z\n\nSubject To\n';
     let line = '';
-    for(let j = 0; j < newMatrix.length; j++){
-      for(let m = 0; m < newMatrix[j].length; m++){
-        line += m !== newMatrix[j].length - 1 ? `X${j}${m} + ` : `X${j}${m} = 1\n`;
+
+    const jobNumRows = newMatrix[0].length;
+    const macNumCol = newMatrix.length;
+    let i = 0;
+    while(i < jobNumRows){
+      for(let m = 0 ; m < macNumCol ; m++){
+        line += m !== macNumCol -1 ? `X${i}${m} + ` : `X${i}${m} = 1\n`;
       }
+      i++;
     }
+
 
     for(let m = 0; m < newMatrix.length; m++){
       for (let j = 0 ; j < newMatrix[m].length ; j++){
@@ -189,6 +200,9 @@ function Dashboard() {
 
   const handleLpInputChange = (event) => {
       setLpValue(event.target.value);
+  };
+  const handleLpIInputChange = (event) => {
+    setLpIValue(event.target.value);
   };
 
   const [s0Date, setS0Date] = useState("");
@@ -295,14 +309,9 @@ function Dashboard() {
     setIsNRunning(false);
   };
 
-  const [lpValueInteger, setLpValueInteger] = useState(0);
-  const handleLpIntegerInputChange = (event) => {
-    setLpValueInteger(event.target.value);
-  };
-
   let barChartData =  {
     labels: ["LPSOLVE","LPSOLVE INTEGER", "S0", "Neighborhood Algorithm"],
-    datasets: { label: "unità", data: [lpValue, lpValueInteger, s0Value, nValue] },
+    datasets: { label: "unità", data: [lpValue, lpIValue, s0Value, nValue] },
   };
   const [barChartDataValue, setBarChartDataValue] = useState({});
 
@@ -339,8 +348,8 @@ function Dashboard() {
                       required
                       id="outlined-required"
                       label="LPSOLVE INTEGER result"
-                      value={lpValueInteger}
-                      onChange={handleLpIntegerInputChange}
+                      value={lpIValue}
+                      onChange={handleLpIInputChange}
                   />
                 </Button>
               </MDBox>
@@ -367,7 +376,7 @@ function Dashboard() {
               <ComplexStatisticsCard
                   icon="download"
                   title="LPSOLVE/CPLEX"
-                  count={`${lpValueInteger}`}
+                  count={`${lpIValue}`}
                   percentage={{
                     color: "success",
                     label: "Scarica il file con la soluizione INTERA",
