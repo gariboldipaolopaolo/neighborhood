@@ -26,8 +26,26 @@ function Dashboard() {
   const [isNRunning, setIsNRunning] = useState(false);
   const [jobMatrix, setJobMatrix] = useState([]);
   const [matrix, setMatrix] = useState([]);
+  const [nworker, setNWorker] = useState(null);
+  const [nValue, setNValue] = useState(0);
+  const [bestScheduler, setBestScheduler] = useState([]);
+  let nWorker;
+  const [solIndex, setSolIndex] = useState(1);
+  const [snDate, setSnDate] = useState("");
+  const [startDate, setStartDate] = useState(new Date());
+  const [filename, setFileName] = useState("");
 
   const handleFile = async (e) => {
+    const fullPath = document.getElementById('upload').value;
+    if (fullPath) {
+      const startIndex = (fullPath.indexOf('\\') >= 0 ? fullPath.lastIndexOf('\\') : fullPath.lastIndexOf('/'));
+      let filename = fullPath.substring(startIndex);
+      if (filename.indexOf('\\') === 0 || filename.indexOf('/') === 0) {
+        filename = filename.substring(1);
+      }
+      setFileName(filename.split(".")[0]);
+    }
+    debugger;
     e.preventDefault();
     const reader = new FileReader();
     reader.onload = async (e) => {
@@ -246,12 +264,21 @@ function Dashboard() {
     setIsRunning(false);
   };
 
-  const [nworker, setNWorker] = useState(null);
-  const [nValue, setNValue] = useState(0);
-  let nWorker;
-  const [solIndex, setSolIndex] = useState(1);
-  const [snDate, setSnDate] = useState("");
-  const [startDate, setStartDate] = useState(new Date());
+  const getData = () => {
+    debugger;
+    if(nValue === 0) return;
+    let text = `${nValue} `;
+    const scheduler = bestScheduler;
+    let m = 0;
+    for(let col = 0; col < scheduler[m].length; col++){
+      for(let r = 0; r < scheduler.length; r++){
+        if(scheduler[r][col] > 0){
+          text += `${r} `;
+        }
+      }
+    }
+    download(text,`${filename}sol.txt` , "text");
+  }
 
   const findN = async (scheduler) => {
     if(jobMatrix.length === 0){
@@ -281,9 +308,10 @@ function Dashboard() {
 
     nWorker.onmessage = (ev) => {
       setNValue(ev.data.bestSolution);
+      setBestScheduler(ev.data.bestScheduler);
       if(ev.data.finished){
         nWorker.terminate();
-        setIsNRunning(false)
+        setIsNRunning(false);
       }
     };
   };
@@ -348,7 +376,7 @@ function Dashboard() {
             <Grid item xs={12} md={12} lg={12}>
               <MDBox mb={3}>
                 <Button variant="contained" component="label">
-                  <input type="file" onChange={(e) => handleFile(e)} />
+                  <input type="file" id={"upload"} onChange={(e) => handleFile(e)} />
                   <TextField
                       required
                       id="outlined-required"
@@ -379,7 +407,7 @@ function Dashboard() {
                     color: "success",
                     label: "Scarica il file con la soluzione RILASSATA",
                   }}
-                  action={() => download(data,"result.lpt","text")}
+                  action={() => download(data,"relaxed.lpt","text")}
               />
             </MDBox>
           </Grid>
@@ -393,7 +421,7 @@ function Dashboard() {
                     color: "success",
                     label: "Scarica il file con la soluizione INTERA",
                   }}
-                  action={() => download(dataI,"result.lpt","text")}
+                  action={() => download(dataI,"integer.lpt","text")}
               />
             </MDBox>
           </Grid>
@@ -481,6 +509,17 @@ function Dashboard() {
                     date={s0Date}
                     chart={barChartDataValue}
                 />
+              </MDBox>
+            </Grid>
+          </Grid>
+        </MDBox>
+        <MDBox mt={0}>
+          <Grid container spacing={3}>
+            <Grid item xs={12} md={12} lg={12}>
+              <MDBox mb={3}>
+                <Button id={"upload"} onClick={getData}>
+                  SCARICA FILE SOLUZIOME
+                </Button>
               </MDBox>
             </Grid>
           </Grid>
