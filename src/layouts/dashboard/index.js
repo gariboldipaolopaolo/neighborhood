@@ -21,6 +21,7 @@ function Dashboard() {
   const [lpValue, setLpValue] = useState(0);
   const [lpIValue, setLpIValue] = useState(0);
   const [s0Value, setS0Value] = useState(0);
+  const [difference, setDifference] = useState(new Date());
   const [isRunning, setIsRunning] = useState(false);
   const [isNRunning, setIsNRunning] = useState(false);
   const [jobMatrix, setJobMatrix] = useState([]);
@@ -250,6 +251,8 @@ function Dashboard() {
   let nWorker;
   const [solIndex, setSolIndex] = useState(1);
   const [snDate, setSnDate] = useState("");
+  const [startDate, setStartDate] = useState(new Date());
+
   const findN = async (scheduler) => {
     if(jobMatrix.length === 0){
       alert('Inserire almeno un istanza!');
@@ -273,6 +276,7 @@ function Dashboard() {
     const date = Date.now();
     const lastRunDate = `Il risultato risale all'operazione lanciata in data ${new Date(date)}`;
     setSnDate(lastRunDate);
+    setStartDate(new Date());
     nWorker.postMessage({matrix, scheduler , s0Value});
 
     nWorker.onmessage = (ev) => {
@@ -283,6 +287,14 @@ function Dashboard() {
       }
     };
   };
+
+  useEffect(() => {
+    const endTime = new Date();
+    let timeDiff = endTime - startDate; //in ms
+    // strip the ms
+    timeDiff /= 1000;
+    setDifference(timeDiff);
+  },[nValue]);
 
   useEffect(() => {
     const index = solIndex + 1;
@@ -450,7 +462,7 @@ function Dashboard() {
                 <ReportsLineChart
                     color="dark"
                     title="Soluzioni locali"
-                    description={`La migliore delle soluzioni locali è: ${nValue}`}
+                    description={`La migliore delle soluzioni locali è: ${nValue} trovata dopo: ${nValue === 0 ? 0 : difference}ms`}
                     date={snDate}
                     chart={cdata}
                 />
