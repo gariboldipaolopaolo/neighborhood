@@ -63,8 +63,7 @@ function Dashboard() {
         line++;
         t++;
       }
-
-      setJobMatrix(matrix);
+      debugger;
       const newMatrix = trasformaMatrix(matrix, lineNum, rowNum);
       setMatrix(newMatrix)
       generateLpSolveText(newMatrix);
