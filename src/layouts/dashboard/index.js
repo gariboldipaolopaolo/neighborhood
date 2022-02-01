@@ -73,35 +73,6 @@ function Dashboard() {
   };
 
   const generateLpSolveText = (matrix) => {
-    // let text = "Minimize z\n";
-    // text += "\n";
-    // text += "Subject To\n";
-    // for(let riga=0; riga < matrix.length; riga++){
-    //   for(let col=0; col < matrix[riga].length; col++){
-    //     text += `\nX${riga}${col}${matrix[riga][col]}`;
-    //     if(col !== matrix[riga].length-1){
-    //       text += "\n+";
-    //     }
-    //   }
-    //     text += "\n = 1";
-    // }
-    // text = text.slice(0, -1);
-    // text += ";";
-    // text += "\n\n/*Constraints: */";
-    //
-    // let newriga =0;
-    // let temp=0;
-    // for(let col=0; col< matrix[newriga].length; col++){
-    //   for(; newriga< matrix.length;newriga++){
-    //     text += `\n${matrix[newriga][col]}*m${newriga}j${col}`;
-    //     if(newriga !== matrix.length-1){
-    //       text += "\n+";
-    //     }
-    //   }
-    //   newriga=temp;
-    //   text += "\n=1;";
-    // }
-    debugger;
     const newMatrix = matrix.map((x) => {
       if(typeof x[x.length - 1] === 'undefined')
         x.pop();
