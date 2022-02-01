@@ -17,6 +17,7 @@ function Dashboard() {
   const { sales, tasks } = reportsLineChartData;
   const [result, setResult] = useState(0);
   const [data, setData] = useState("");
+  const [dataI, setDataI] = useState("");
   const [lpValue, setLpValue] = useState(0);
   const [s0Value, setS0Value] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
@@ -68,6 +69,7 @@ function Dashboard() {
       const newMatrix = trasformaMatrix(matrix, lineNum, rowNum);
       setMatrix(newMatrix)
       generateLpSolveText(newMatrix);
+      generateLpISolveText(newMatrix);
     };
     reader.readAsText(e.target.files[0]);
   };
@@ -105,6 +107,41 @@ function Dashboard() {
     text += line;
 
     setData(text);
+  };
+
+  const generateLpISolveText = (matrix) => {
+    const newMatrix = matrix.map((x) => {
+      if(typeof x[x.length - 1] === 'undefined')
+        x.pop();
+      return x;
+    });
+
+    let text = 'Minimize Z\n\nSubject To\n';
+    let line = '';
+    for(let j = 0; j < newMatrix.length; j++){
+      for(let m = 0; m < newMatrix[j].length; m++){
+        line += m !== newMatrix[j].length - 1 ? `X${j}${m} + ` : `X${j}${m} = 1\n`;
+      }
+    }
+
+    for(let m = 0; m < newMatrix.length; m++){
+      for (let j = 0 ; j < newMatrix[m].length ; j++){
+        line += j !== newMatrix[m].length -1 ? `${newMatrix[m][j]} X${j}${m} + ` : `${newMatrix[m][j]} X${j}${m} -Z <= 0\n`;
+      }
+    }
+
+    text += line;
+    text += '\ngeneral\nZ\n';
+    line = '';
+    for(let m = 0; m < newMatrix.length; m++){
+      for (let j = 0 ; j < newMatrix[m].length ; j++){
+        line += `X${j}${m}\n`;
+      }
+    }
+
+    text += line;
+
+    setDataI(text);
   };
 
   const trasformaMatrix = (matrix, matrixRowLength, matrixColLength) => {
@@ -258,11 +295,14 @@ function Dashboard() {
     setIsNRunning(false);
   };
 
-
+  const [lpValueInteger, setLpValueInteger] = useState(0);
+  const handleLpIntegerInputChange = (event) => {
+    setLpValueInteger(event.target.value);
+  };
 
   let barChartData =  {
-    labels: ["LPSOLVE", "S0", "Neighborhood Algorithm"],
-    datasets: { label: "unità", data: [lpValue, s0Value, nValue] },
+    labels: ["LPSOLVE","LPSOLVE INTEGER", "S0", "Neighborhood Algorithm"],
+    datasets: { label: "unità", data: [lpValue, lpValueInteger, s0Value, nValue] },
   };
   const [barChartDataValue, setBarChartDataValue] = useState({});
 
@@ -275,6 +315,7 @@ function Dashboard() {
   useEffect(() => {
     setDelta(nValue !== 0 && lpValue !== 0 ? ((nValue - lpValue) / lpValue) * 100 : 0);
   }, [lpValue, nValue]);
+
 
 
   return (
@@ -294,13 +335,20 @@ function Dashboard() {
                       value={lpValue}
                       onChange={handleLpInputChange}
                   />
+                  <TextField
+                      required
+                      id="outlined-required"
+                      label="LPSOLVE INTEGER result"
+                      value={lpValueInteger}
+                      onChange={handleLpIntegerInputChange}
+                  />
                 </Button>
               </MDBox>
             </Grid>
           </Grid>
         </MDBox>
         <Grid container spacing={3}>
-          <Grid item xs={12} md={6} lg={4}>
+          <Grid item xs={12} md={6} lg={3}>
             <MDBox mb={1.5}>
               <ComplexStatisticsCard
                   icon="download"
@@ -308,13 +356,27 @@ function Dashboard() {
                   count={`${lpValue}`}
                   percentage={{
                     color: "success",
-                    label: "Scarica il file LPSOLVE/CPLEX",
+                    label: "Scarica il file con la soluzione RILASSATA",
                   }}
                   action={() => download(data,"result.lpt","text")}
               />
             </MDBox>
           </Grid>
-          <Grid item xs={12} md={6} lg={4}>
+          <Grid item xs={12} md={6} lg={3}>
+            <MDBox mb={1.5}>
+              <ComplexStatisticsCard
+                  icon="download"
+                  title="LPSOLVE/CPLEX"
+                  count={`${lpValueInteger}`}
+                  percentage={{
+                    color: "success",
+                    label: "Scarica il file con la soluizione INTERA",
+                  }}
+                  action={() => download(dataI,"result.lpt","text")}
+              />
+            </MDBox>
+          </Grid>
+          <Grid item xs={12} md={6} lg={3}>
             <MDBox mb={1.5}>
               {!isRunning
                   ? (<ComplexStatisticsCard
@@ -343,7 +405,7 @@ function Dashboard() {
 
             </MDBox>
           </Grid>
-          <Grid item xs={12} md={6} lg={4}>
+          <Grid item xs={12} md={6} lg={3}>
             <MDBox mb={1.5}>
               {!isNRunning
                   ? (<ComplexStatisticsCard
@@ -393,7 +455,7 @@ function Dashboard() {
               <MDBox mb={3}>
                 <ReportsBarChart
                     color="info"
-                    title="% di ERRORE"
+                    title="MAKESPAN"
                     description={`La % di errore è del: ${delta}%. Il valore ottimo si trova tra ${lpValue} e ${nValue}`}
                     date={s0Date}
                     chart={barChartDataValue}
