@@ -63,7 +63,8 @@ function Dashboard() {
         line++;
         t++;
       }
-      debugger;
+
+      setJobMatrix(matrix);
       const newMatrix = trasformaMatrix(matrix, lineNum, rowNum);
       setMatrix(newMatrix)
       generateLpSolveText(newMatrix);
@@ -72,33 +73,65 @@ function Dashboard() {
   };
 
   const generateLpSolveText = (matrix) => {
-    let text = "min: ";
+    // let text = "Minimize z\n";
+    // text += "\n";
+    // text += "Subject To\n";
+    // for(let riga=0; riga < matrix.length; riga++){
+    //   for(let col=0; col < matrix[riga].length; col++){
+    //     text += `\nX${riga}${col}${matrix[riga][col]}`;
+    //     if(col !== matrix[riga].length-1){
+    //       text += "\n+";
+    //     }
+    //   }
+    //     text += "\n = 1";
+    // }
+    // text = text.slice(0, -1);
+    // text += ";";
+    // text += "\n\n/*Constraints: */";
+    //
+    // let newriga =0;
+    // let temp=0;
+    // for(let col=0; col< matrix[newriga].length; col++){
+    //   for(; newriga< matrix.length;newriga++){
+    //     text += `\n${matrix[newriga][col]}*m${newriga}j${col}`;
+    //     if(newriga !== matrix.length-1){
+    //       text += "\n+";
+    //     }
+    //   }
+    //   newriga=temp;
+    //   text += "\n=1;";
+    // }
+    debugger;
+    const newMatrix = matrix.map((x) => {
+      if(typeof x[x.length - 1] === 'undefined')
+        x.pop();
+      return x;
+    });
 
-    for(let riga=0; riga < matrix.length; riga++){
-      for(let col=0; col < matrix[riga].length; col++){
-        text += `\n${matrix[riga][col]}*m${riga}j${col}`;
-        if(col !== matrix[riga].length-1){
-          text += "\n+";
-        }
+    let text = 'Minimize Z\n\nSubject To\n';
+    let line = '';
+    for(let j = 0; j < newMatrix.length; j++){
+      for(let m = 0; m < newMatrix[j].length; m++){
+        line += m !== newMatrix[j].length - 1 ? `X${j}${m} + ` : `X${j}${m} = 1\n`;
       }
-      text += "\n";
     }
 
-    text += ";";
-    text += "\n\n/*Constraints: */";
-
-    let newriga =0;
-    let temp=0;
-    for(let col=0; col< matrix[newriga].length; col++){
-      for(; newriga< matrix.length;newriga++){
-        text += `\n${matrix[newriga][col]}*m${newriga}j${col}`;
-        if(newriga !== matrix.length-1){
-          text += "\n+";
-        }
+    for(let m = 0; m < newMatrix.length; m++){
+      for (let j = 0 ; j < newMatrix[m].length ; j++){
+        line += j !== newMatrix[m].length -1 ? `${newMatrix[m][j]} X${j}${m} + ` : `${newMatrix[m][j]} X${j}${m} -Z <= 0\n`;
       }
-      newriga=temp;
-      text += "\n=1;";
     }
+
+    text += line;
+    text += '\nbounds\nZ >= 0\n';
+    line = '';
+    for(let m = 0; m < newMatrix.length; m++){
+      for (let j = 0 ; j < newMatrix[m].length ; j++){
+        line += `X${j}${m} >= 0\n`;
+      }
+    }
+
+    text += line;
 
     setData(text);
   };
@@ -258,7 +291,7 @@ function Dashboard() {
 
   let barChartData =  {
     labels: ["LPSOLVE", "S0", "Neighborhood Algorithm"],
-    datasets: { label: "ms", data: [lpValue, s0Value, nValue] },
+    datasets: { label: "unità", data: [lpValue, s0Value, nValue] },
   };
   const [barChartDataValue, setBarChartDataValue] = useState({});
 
@@ -301,12 +334,12 @@ function Dashboard() {
               <ComplexStatisticsCard
                   icon="download"
                   title="LPSOLVE/CPLEX"
-                  count={`${lpValue} ms`}
+                  count={`${lpValue}`}
                   percentage={{
                     color: "success",
                     label: "Scarica il file LPSOLVE/CPLEX",
                   }}
-                  action={() => download(data,"result.lp","text")}
+                  action={() => download(data,"result.lpt","text")}
               />
             </MDBox>
           </Grid>
@@ -317,7 +350,7 @@ function Dashboard() {
                       color={"success"}
                       icon={"S"}
                       title="Soluzione S0"
-                      count={`${s0Value} ms`}
+                      count={`${s0Value}`}
                       percentage={{
                         color: "success",
                         label: "Trova la soluzione S0",
@@ -328,7 +361,7 @@ function Dashboard() {
                       color={"error"}
                       icon={"stop"}
                       title="Soluzione S0"
-                      count={`${s0Value} ms`}
+                      count={`${s0Value}`}
                       percentage={{
                         color: "success",
                         label: "Trova la soluzione S0",
@@ -346,7 +379,7 @@ function Dashboard() {
                       color={"success"}
                       icon={"N"}
                       title="Soluzione Neighborhood"
-                      count={`${nValue} ms`}
+                      count={`${nValue}`}
                       percentage={{
                         color: "success",
                         label: "Trova la soluzione Neighborhood",
@@ -357,7 +390,7 @@ function Dashboard() {
                       color={"error"}
                       icon={"stop"}
                       title="Soluzione Neighborhood"
-                      count={`${nValue} ms`}
+                      count={`${nValue}`}
                       percentage={{
                         color: "success",
                         label: "Trova la soluzione Neighborhood",
@@ -375,7 +408,7 @@ function Dashboard() {
                 <ReportsLineChart
                     color="dark"
                     title="Soluzioni locali"
-                    description={`La migliore delle soluzioni locali è: ${nValue}ms`}
+                    description={`La migliore delle soluzioni locali è: ${nValue}`}
                     date={snDate}
                     chart={cdata}
                 />
@@ -390,7 +423,7 @@ function Dashboard() {
                 <ReportsBarChart
                     color="info"
                     title="% di ERRORE"
-                    description={`La % di errore è del: ${delta}%. Il valore ottimo si trova tra ${lpValue}ms e ${nValue}ms`}
+                    description={`La % di errore è del: ${delta}%. Il valore ottimo si trova tra ${lpValue} e ${nValue}`}
                     date={s0Date}
                     chart={barChartDataValue}
                 />
